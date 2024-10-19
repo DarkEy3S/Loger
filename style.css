@@ -22,9 +22,20 @@ body {
     width: 100%;
     opacity: 1;
     transition: opacity .5s ease, width .5s ease-in-out;
+    position: relative;
 }
 
 
+.log-row {
+    display: flex;
+
+}
+.log-colum:first-child {
+    flex: 1 1 33%;
+}
+.log-colum:last-child {
+    flex: 1 1 66%;
+}
 .log-view {
     margin-bottom: 15px;
     /*width: calc(100% - 11px);*/
@@ -73,6 +84,7 @@ body {
     background-color: rgb(220, 220, 220);
     padding: .5rem 1rem;
     border-radius: 1rem;
+    
 }
 
 
@@ -121,7 +133,8 @@ body {
 }
 
 .container {
-    width: fit-content;
+    max-width: 1024px;
+    width: 100%;
     margin: auto;
 }
 
@@ -162,6 +175,7 @@ body {
 }
 
 #log-input {
+    margin-bottom: 1em;
     padding: .5em 1em;
     outline: none;
     font-size: .8em;
