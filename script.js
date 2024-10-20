@@ -10,11 +10,16 @@ const str =
             ...
         </body> 
     </html>`;
-log('1');
-log('2');
 
+let keys = Object.keys(localStorage);
 
-log('3');
+keys = keys.sort((a, b) => +a.match(/\d+/g) > +b.match(/\d+/g) ? 1 : -1);
+
+if(keys[0]) idNumber = keys[keys.length - 1].match(/\d+/);
+for (const key of keys) {
+
+    logElement.insertAdjacentHTML('afterbegin', localStorage.getItem(key))
+}
 
 
 function log(value) {
@@ -36,13 +41,15 @@ function log(value) {
     logClearBoth.classList.add('log-clear');
 
     logView.textContent = value;
-    logId.textContent = `id:${date.getTime() + idNumber}`;
     idNumber++;
+
+    logId.textContent = `id:${idNumber}`;
+
     logClose.innerHTML = '<span>x</span>'
     logoDate.textContent = `${date.getHours() <= 9 ? '0' + date.getHours() : date.getHours()}:${date.getMinutes() <= 9 ? '0' + date.getMinutes() : date.getMinutes()}:${date.getSeconds() <= 9 ? '0' + date.getSeconds() : date.getSeconds()}`;
 
     const cloneLogClearBoth = logClearBoth.cloneNode(true);
-    logElement.append(logWrapper)
+    logElement.prepend(logWrapper)
     logWrapper.append(logBody);
     logBody.append(logView)
     logBody.append(cloneLogClearBoth);
@@ -51,6 +58,7 @@ function log(value) {
     logBody.append(logClearBoth);
     logBody.append(logClose);
 
+    localStorage.setItem(logId.textContent, logWrapper.outerHTML);
 
 }
 
@@ -71,15 +79,15 @@ document.addEventListener('pointerdown', onPointerDown);
 function onPointerDown(e) {
     let elemBelow = document.elementFromPoint(e.clientX, e.clientY);
     let droppableBelow
-
+    let scrollTop ;
+    let scrollLeft ;
     const target = e.target.closest('.log-wrapper');
     if (!target) return;
     const buffDiv = document.createElement('div');
     target.classList.remove('droppable');
-    buffDiv.style.height = target.offsetHeight + 'px';
-    buffDiv.style.width = target.offsetWidth + 'px';
+    buffDiv.style.height = target.clientHeight + 'px';
+    buffDiv.style.width = target.clientWidth + 'px';
     buffDiv.classList.add('log-wrapper')
-    console.log(target.style.marginBottom)
     target.after(buffDiv);
     target.style.position = "absolute";
     target.style.zIndex = "1000";
@@ -89,21 +97,24 @@ function onPointerDown(e) {
     let shiftX = e.clientX - cords.left;
     let shiftY = e.clientY - cords.top;
 
+    scrollTop = scrollY
+    scrollLeft = scrollX;
 
-    moveAt(e.pageX, e.pageY);
+    moveAt(e.clientX, e.clientY);
 
 
     document.addEventListener('pointermove', onMouseMove);
     document.addEventListener('pointerup', onMouseUp)
 
 
-    function onMouseMove(event) {
-        moveAt(event.pageX, event.pageY);
+    function onMouseMove(e) {
+        moveAt(e.pageX, e.clientY);
+
 
 
     }
 
-    function onMouseUp() {
+    function onMouseUp(e) {
         document.removeEventListener('pointermove', onMouseMove);
         document.removeEventListener('pointerup', onMouseUp)
         buffDiv.remove()
@@ -115,11 +126,7 @@ function onPointerDown(e) {
 
 
         target.hidden = true;
-        elemBelow = document.elementFromPoint(event.pageX, event.pageY);
-        if (elemBelow.closest('.droppable')) {
-
-            console.log(elemBelow);
-        }
+        elemBelow = document.elementFromPoint(e.clientX, e.clientY);
 
         target.hidden = false;
 
@@ -135,8 +142,11 @@ function onPointerDown(e) {
     }
 
     function moveAt(pageX, pageY) {
-        let left = pageX - logElement.offsetLeft - shiftX;
-        let top = pageY - logElement.offsetTop - shiftY;
+
+
+        let left = pageX  - logElement.offsetLeft  - shiftX - (scrollLeft - scrollX);
+        let top = pageY   - logElement.offsetTop  - shiftY - (scrollTop - scrollY);
+
 
 
         if (left < 0) {
@@ -152,7 +162,7 @@ function onPointerDown(e) {
 
 
         target.style.left = left + 'px';
-        target.style.top = top + 'px';
+        target.style.top = top  + 'px';
     }
 
     function drop(element) {
@@ -195,10 +205,9 @@ document.addEventListener('click', e => {
     let logClose = e.target.closest('.log-close');
     if (!logClose) return;
     const target = e.target.closest('.log-wrapper');
+    let id = target.querySelector('.log-id')
+    localStorage.removeItem(id.innerHTML)
 
-
-
-    console.log(logClose);
     target.classList.add('is-deleting');
 
     e.target.closest('.log-body').classList.add('is-deleting');
